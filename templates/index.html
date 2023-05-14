@@ -1,0 +1,166 @@
+<!-- 
+Created By:- Sameer Goel
+Created On:- 12-04-2021
+Language Used:- HTML, CSS, Javascript, Bootstrap
+IDE Used:- VS Code
+Purpose:- To predict the price of the used car on the basis of some features 
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <title>Estimator</title>
+</head>
+
+<body class="bg-dark">
+    <div class="container">
+        <div class="row">
+            <div class="card mt-50" style="width:100%; height:100%">
+                <div class="card-header" style="text-align: center">
+                    <h1>Welcome To Estimator</h1>
+                </div>
+
+                <div class="card-body">
+                    <div class="col-12" style="text-align: center;">
+                        <h5>Estimator helps you to predict the estimated cost of your car.</h5>
+                    </div>
+                    <br>
+                    <form method="post" name="form">
+
+                        <div class="col-md-10 from-group" style="text-align: left;">
+                            <label>
+                                <strong>Select Company</strong>
+                            </label>
+                            <select class="selectpicker form-control" id="company" name="company" required="1"
+                                onchange="load_car_models(this.id, 'car_models')">
+                                {% for company in companies %}
+                                <option value="{{ company }}">{{ company }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <br>
+
+                        <div class="col-md-10 from-group" style="text-align: left;">
+                            <label>
+                                <strong>Select Model</strong>
+                            </label>
+                            <select class="selectpicker form-control" id="car_models" name="car_models" required="1">
+                            </select>
+                        </div>
+                        <br>
+
+                        <div class="col-md-10 from-group" style="text-align: left;">
+                            <label>
+                                <strong>Select Purchasing Year</strong>
+                            </label>
+                            <select class="selectpicker form-control" id="year" name="year" required="1">
+                                {% for year in years %}
+                                <option value="{{ year }}">{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <br>
+
+                        <div class="col-md-10 from-group" style="text-align: left;">
+                            <label>
+                                <strong>Select Engine Type</strong>
+                            </label>
+                            <select class="selectpicker form-control" id="fuel_type" name="fuel_type" required="1">
+                                {% for fuel_type in fuel_types %}
+                                <option value="{{ fuel_type }}">{{ fuel_type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <br>
+
+                        <div class="col-md-10 from-group" style="text-align: left;">
+                            <label>
+                                <strong>Kilometer Driven</strong>
+                            </label>
+                            <input type="text" class="form-control" name="kms_driven" id="kms_driven"
+                                placeholder="e.g 100000">
+                        </div>
+                        <br>
+
+                        <div class="col-md-2 from-group" style="text-align: center;">
+                            <button class="btn btn-outline-dark form-control" onclick="send_data()">
+                                Predict
+                            </button>
+                        </div>
+                    </form>
+                    <br>
+                    <div class="row">
+                        <div class="col-12" style="text-align: center;">
+                            <h4>
+                                <span id="prediction">
+
+                                </span>
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function load_car_models(company_id, car_model_id) {
+            var company = document.getElementById(company_id);
+            var car_model = document.getElementById(car_model_id);
+            car_model.value = "";
+            car_model.innerHTML = "";
+            {% for company in companies %}
+                if (company.value == "{{ company }}") 
+                {
+                    {% for model in car_models %}
+                        {% if company in model %}
+                            var items = document.createElement("option");
+                            items.value = "{{ model}}";
+                            items.innerHTML = "{{ model }}"
+                            car_model.options.add(items)
+                        {% endif %}
+                    {% endfor %}
+                }
+            {% endfor %}
+        }
+
+        function form_handler(event)
+        {
+            event.preventDefault();
+        }
+
+        function send_data()
+        {
+            document.querySelector('form').addEventListener('submit', form_handler);
+            var prices = new FormData(document.querySelector("form"));
+            var http_request = new XMLHttpRequest({ mozSystem: true});
+            http_request.open('POST', '/predict', true);
+            document.getElementById("prediction").innerHTML = "Prediction.....";
+            http_request.onreadystatechange = function()
+            {
+                if(http_request.readyState == XMLHttpRequest.DONE)
+                {
+                    document.getElementById("prediction").innerHTML = "PRICE: " + http_request.responseText + "&#8377";
+                }
+            };
+            http_request.onload = function(){};
+            http_request.send(prices);
+        }
+    </script>
+</body>
+</html>
